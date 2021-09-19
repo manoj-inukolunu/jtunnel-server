@@ -1,4 +1,5 @@
 
+
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -20,13 +21,7 @@ public class JTunnel {
             buffer.clear();
         }
     }
-
-
-    static HashMap<String, String> remoteClientMap = new HashMap<>();
-
-    static {
-        remoteClientMap.put("165.232.183.253", "manoj");
-    }
+    
 
     public static void runServer() throws Exception {
         ServerSocketChannel remoteHttpServer = ServerSocketChannel.open();
@@ -66,10 +61,11 @@ public class JTunnel {
                     keys.remove();
                     if (key.isValid() && key.isAcceptable()) {
                         SocketChannel clientChannel = clientServer.accept();
+                        String hostName = ((InetSocketAddress) clientChannel.getRemoteAddress()).getHostName();
                         clientChannel.configureBlocking(false);
-                        clientChannel.register(clientSelector, SelectionKey.OP_READ, "manoj");
-                        clientChannelMap.put("manoj", clientChannel);
-                        System.out.println("Remote Client Connection received");
+                        clientChannel.register(clientSelector, SelectionKey.OP_READ, hostName);
+                        clientChannelMap.put(hostName, clientChannel);
+                        System.out.println("Remote Client Connection received from = " + hostName);
                     } else if (key.isValid() && key.isReadable()) {
                         SocketChannel clientChannel = (SocketChannel) key.channel();
                         Object attachment = key.attachment();
@@ -151,7 +147,7 @@ public class JTunnel {
             buffer.append(data);
         }
         String line = buffer.toString().split("\r\n")[1];
-        return remoteClientMap.get(line.split(" ")[1]);
+        return line.split(" ")[1];
     }
 
     public static void main(String[] args) throws Exception {
