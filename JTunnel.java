@@ -91,7 +91,7 @@ public class JTunnel {
       String data = StandardCharsets.UTF_8.decode(buffer).toString();
       if (data.startsWith("register")) {
         String host = data.split(" ")[1];
-        System.out.println("Succesfully Registered host=" + host);
+        System.out.println("Succesfully Registered host = " + host);
         key.attach(host);
         clientChannelMap.put(host, clientChannel);
         return;
@@ -138,6 +138,7 @@ public class JTunnel {
         if (sink != null) {
           System.out.println("Found Sink Channel for clientName = " + clientName);
         } else {
+          System.out.println("Sink Channel not found for clientName = " + clientName);
           return;
         }
         while (buffer.hasRemaining()) {
