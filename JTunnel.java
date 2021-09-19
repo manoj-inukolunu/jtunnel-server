@@ -1,4 +1,3 @@
-package com.jgrok.network;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
