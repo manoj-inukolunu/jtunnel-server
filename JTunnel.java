@@ -38,45 +38,49 @@ public class JTunnel {
     HashMap<String, SocketChannel> clientChannelMap = new HashMap<>();
     HashMap<String, SocketChannel> sourceChannelMap = new HashMap<>();
     while (true) {
-      if (httpSelector.selectNow() > 0) {
-        Iterator<SelectionKey> keys = httpSelector.selectedKeys().iterator();
-        while (keys.hasNext()) {
-          SelectionKey key = keys.next();
-          keys.remove();
-          if (key.isValid() && key.isAcceptable()) {
-            SocketChannel remoteHttpChannel = remoteHttpServer.accept();
-            remoteHttpChannel.configureBlocking(false);
-            remoteHttpChannel.register(httpSelector, SelectionKey.OP_READ);
-            System.out.println("Http Connection received ");
-          } else if (key.isValid() && key.isReadable()) {
-            SocketChannel remoteHttpChannel = (SocketChannel) key.channel();
-            transferFromServerToClient(remoteHttpChannel, clientChannelMap, sourceChannelMap);
-          }
-        }
-      }
-      if (clientSelector.selectNow() > 0) {
-        Iterator<SelectionKey> keys = clientSelector.selectedKeys().iterator();
-        while (keys.hasNext()) {
-          SelectionKey key = keys.next();
-          keys.remove();
-          if (key.isValid() && key.isAcceptable()) {
-            SocketChannel clientChannel = clientServer.accept();
-            clientChannel.configureBlocking(false);
-            clientChannel.register(clientSelector, SelectionKey.OP_READ);
-          } else if (key.isValid() && key.isReadable()) {
-            SocketChannel clientChannel = (SocketChannel) key.channel();
-            Object attachment = key.attachment();
-            if (attachment != null) {
-              String clientName = (String) attachment;
-              SocketChannel remoteChannel = sourceChannelMap.get(clientName);
-              if (remoteChannel != null) {
-                transferDataFromClientToServer(clientChannel, remoteChannel);
-              }
-            } else {
-              checkAndRegister(clientChannel, clientChannelMap, key);
+      try {
+        if (httpSelector.selectNow() > 0) {
+          Iterator<SelectionKey> keys = httpSelector.selectedKeys().iterator();
+          while (keys.hasNext()) {
+            SelectionKey key = keys.next();
+            keys.remove();
+            if (key.isValid() && key.isAcceptable()) {
+              SocketChannel remoteHttpChannel = remoteHttpServer.accept();
+              remoteHttpChannel.configureBlocking(false);
+              remoteHttpChannel.register(httpSelector, SelectionKey.OP_READ);
+              System.out.println("Http Connection received ");
+            } else if (key.isValid() && key.isReadable()) {
+              SocketChannel remoteHttpChannel = (SocketChannel) key.channel();
+              transferFromServerToClient(remoteHttpChannel, clientChannelMap, sourceChannelMap);
             }
           }
         }
+        if (clientSelector.selectNow() > 0) {
+          Iterator<SelectionKey> keys = clientSelector.selectedKeys().iterator();
+          while (keys.hasNext()) {
+            SelectionKey key = keys.next();
+            keys.remove();
+            if (key.isValid() && key.isAcceptable()) {
+              SocketChannel clientChannel = clientServer.accept();
+              clientChannel.configureBlocking(false);
+              clientChannel.register(clientSelector, SelectionKey.OP_READ);
+            } else if (key.isValid() && key.isReadable()) {
+              SocketChannel clientChannel = (SocketChannel) key.channel();
+              Object attachment = key.attachment();
+              if (attachment != null) {
+                String clientName = (String) attachment;
+                SocketChannel remoteChannel = sourceChannelMap.get(clientName);
+                if (remoteChannel != null) {
+                  transferDataFromClientToServer(clientChannel, remoteChannel);
+                }
+              } else {
+                checkAndRegister(clientChannel, clientChannelMap, key);
+              }
+            }
+          }
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
       }
     }
 
@@ -158,20 +162,25 @@ public class JTunnel {
   }
 
   private static String getClientName(ByteBuffer buff) {
-    StringBuilder buffer = new StringBuilder();
-    int count = 0;
-    while (buff.hasRemaining()) {
-      char data = (char) buff.get();
-      if (data == '\r') {
-        count++;
-        if (count == 2) {
-          break;
+    try {
+      StringBuilder buffer = new StringBuilder();
+      int count = 0;
+      while (buff.hasRemaining()) {
+        char data = (char) buff.get();
+        if (data == '\r') {
+          count++;
+          if (count == 2) {
+            break;
+          }
         }
+        buffer.append(data);
       }
-      buffer.append(data);
+      String line = buffer.toString().split("\r\n")[1];
+      return line.split(" ")[1];
+    } catch (Exception e) {
+      e.printStackTrace();
     }
-    String line = buffer.toString().split("\r\n")[1];
-    return line.split(" ")[1];
+    return null;
   }
 
   public static void main(String[] args) throws Exception {
