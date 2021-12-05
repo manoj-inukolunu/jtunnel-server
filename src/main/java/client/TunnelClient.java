@@ -36,7 +36,7 @@ public class TunnelClient {
             }
           });
 
-      ChannelFuture future = bootstrap.connect("manoj.jtunnel.net", 8585).sync();
+      ChannelFuture future = bootstrap.connect("localhost", 8585).sync();
       future.channel().closeFuture().sync();
     } catch (InterruptedException e) {
       e.printStackTrace();

@@ -15,7 +15,6 @@ public class ProtoMessageEncoder extends MessageToByteEncoder<ProtoMessage> {
 
   @Override
   protected void encode(ChannelHandlerContext ctx, ProtoMessage message, ByteBuf out) {
-    System.out.println("Encoding Message " + message.getMessageType());
     //  This will determine whether the message type is EMPTY type , If it is EMPTY type , Indicates that the
     //  current message does not need to be written to the pipeline
     if (message.getMessageType() != MessageTypeEnum.EMPTY) {

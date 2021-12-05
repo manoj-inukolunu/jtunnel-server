@@ -18,9 +18,13 @@ import io.netty.handler.codec.http.HttpRequestEncoder;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import java.util.UUID;
+import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import server.MessageTypeEnum;
 import server.ProtoMessage;
 
+
+@Slf4j
 public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
   static class HttpMessageHandler extends ChannelOutboundHandlerAdapter {
@@ -67,18 +71,23 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
       String sessionId = UUID.randomUUID().toString();
       AppData.httpChannelMap.put(sessionId, ctx);
       ChannelPipeline clientPipeline = channelMap.get(subdomain);
-      EmbeddedChannel embeddedChannel =
-          new EmbeddedChannel(
-              new HttpMessageHandler(clientPipeline, AppData.hostToUUIDMap.get(subdomain), sessionId),
-              new HttpObjectAggregator(Integer.MAX_VALUE), new HttpRequestEncoder());
-      ChannelFuture future = embeddedChannel.writeAndFlush(request);
-      future.addListener(new GenericFutureListener<Future<? super Void>>() {
-        @Override
-        public void operationComplete(Future<? super Void> future) throws Exception {
-          System.out.println("Converted FullHttpRequest to ProtoMessage sessionId=" + sessionId);
-        }
-      });
-      embeddedChannel.writeAndFlush(ProtoMessage.finMessage(sessionId));
+      if (clientPipeline != null) {
+        EmbeddedChannel embeddedChannel =
+            new EmbeddedChannel(
+                new HttpMessageHandler(clientPipeline, AppData.hostToUUIDMap.get(subdomain), sessionId),
+                new HttpObjectAggregator(Integer.MAX_VALUE), new HttpRequestEncoder());
+        ChannelFuture future = embeddedChannel.writeAndFlush(request);
+        future.addListener(new GenericFutureListener<Future<? super Void>>() {
+          @Override
+          public void operationComplete(Future<? super Void> future) throws Exception {
+            log.info("Converted FullHttpRequest to ProtoMessage with sessionId={}" + sessionId);
+          }
+        });
+        embeddedChannel.writeAndFlush(ProtoMessage.finMessage(sessionId));
+      } else {
+        log.warn("No Client registered for host={}", subdomain);
+      }
+
     } catch (Exception e) {
       e.printStackTrace();
     }

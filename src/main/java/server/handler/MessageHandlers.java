@@ -3,9 +3,11 @@ package server.handler;
 import io.netty.channel.ChannelHandlerContext;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.extern.slf4j.Slf4j;
 import server.MessageTypeEnum;
 import server.ProtoMessage;
 
+@Slf4j
 public class MessageHandlers implements MessageHandler {
 
 
@@ -20,8 +22,7 @@ public class MessageHandlers implements MessageHandler {
     try {
       handlers.get(message.getMessageType()).handleMessage(ctx, message);
     } catch (Exception e) {
-      System.out.println(message.getMessageType());
-      e.printStackTrace();
+      log.error("Exception in handling message ={}", message, e);
     }
 
   }
