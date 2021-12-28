@@ -9,7 +9,7 @@ import io.netty.handler.codec.MessageToByteEncoder;
 import java.nio.charset.Charset;
 import java.util.UUID;
 import server.MessageTypeEnum;
-import server.ProtoMessage;
+import proto.ProtoMessage;
 
 public class ProtoMessageEncoder extends MessageToByteEncoder<ProtoMessage> {
 

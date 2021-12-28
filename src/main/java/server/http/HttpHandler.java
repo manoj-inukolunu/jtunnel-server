@@ -18,10 +18,9 @@ import io.netty.handler.codec.http.HttpRequestEncoder;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import java.util.UUID;
-import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 import server.MessageTypeEnum;
-import server.ProtoMessage;
+import proto.ProtoMessage;
 
 
 @Slf4j
