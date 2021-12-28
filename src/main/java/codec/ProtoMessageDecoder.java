@@ -7,7 +7,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.UUID;
 import server.MessageTypeEnum;
-import server.ProtoMessage;
+import proto.ProtoMessage;
 
 public class ProtoMessageDecoder extends ByteToMessageDecoder {
 

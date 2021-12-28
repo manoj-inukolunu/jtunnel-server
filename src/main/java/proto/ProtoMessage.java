@@ -1,9 +1,10 @@
-package server;
+package proto;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Data;
+import server.MessageTypeEnum;
 
 @Data
 public class ProtoMessage {

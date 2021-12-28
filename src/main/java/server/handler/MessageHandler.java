@@ -1,7 +1,7 @@
 package server.handler;
 
 import io.netty.channel.ChannelHandlerContext;
-import server.ProtoMessage;
+import proto.ProtoMessage;
 
 public interface MessageHandler {
 
