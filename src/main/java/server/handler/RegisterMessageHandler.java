@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import server.MessageTypeEnum;
-import server.ProtoMessage;
+import proto.ProtoMessage;
 
 
 @NoArgsConstructor

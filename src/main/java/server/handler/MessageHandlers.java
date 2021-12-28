@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 import server.MessageTypeEnum;
-import server.ProtoMessage;
+import proto.ProtoMessage;
 
 @Slf4j
 public class MessageHandlers implements MessageHandler {

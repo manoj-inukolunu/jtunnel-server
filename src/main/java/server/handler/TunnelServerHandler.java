@@ -2,7 +2,7 @@ package server.handler;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import server.ProtoMessage;
+import proto.ProtoMessage;
 
 public class TunnelServerHandler extends SimpleChannelInboundHandler<ProtoMessage> {
 
