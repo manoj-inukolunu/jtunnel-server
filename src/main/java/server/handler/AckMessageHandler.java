@@ -2,7 +2,7 @@ package server.handler;
 
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
-import proto.ProtoMessage;
+import com.jtunnel.proto.ProtoMessage;
 
 @Slf4j
 public class AckMessageHandler implements MessageHandler {

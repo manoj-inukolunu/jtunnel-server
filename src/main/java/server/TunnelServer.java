@@ -1,7 +1,7 @@
 package server;
 
-import codec.ProtoMessageDecoder;
-import codec.ProtoMessageEncoder;
+
+import com.jtunnel.proto.MessageType;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -11,13 +11,11 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import io.netty.handler.codec.LengthFieldPrepender;
-import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpRequestEncoder;
+import io.netty.handler.codec.serialization.ClassResolvers;
+import io.netty.handler.codec.serialization.ObjectDecoder;
+import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import java.util.UUID;
 import server.handler.AckMessageHandler;
 import server.handler.MessageHandlers;
 import server.handler.RegisterMessageHandler;
@@ -41,9 +39,9 @@ public class TunnelServer {
             protected void initChannel(SocketChannel ch) throws Exception {
               ChannelPipeline pipeline = ch.pipeline();
               MessageHandlers handlers = new MessageHandlers();
-              handlers.register(MessageTypeEnum.REGISTER, new RegisterMessageHandler());
-              handlers.register(MessageTypeEnum.HTTP_RESPONSE, new ResponseMessageHandler());
-              handlers.register(MessageTypeEnum.ACK, new AckMessageHandler());
+              handlers.register(MessageType.REGISTER, new RegisterMessageHandler());
+              handlers.register(MessageType.HTTP_RESPONSE, new ResponseMessageHandler());
+              handlers.register(MessageType.ACK, new AckMessageHandler());
               addProtoClientHandlers(pipeline, handlers);
             }
           });
@@ -61,10 +59,13 @@ public class TunnelServer {
   }
 
   public static void addProtoClientHandlers(ChannelPipeline pipeline, MessageHandlers handlers) {
-    pipeline.addLast("length-decoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
-    pipeline.addLast("length-prepender", new LengthFieldPrepender(4));
+    /*pipeline.addLast("length-decoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 8, 0, 8));
+    pipeline.addLast("length-prepender", new LengthFieldPrepender(8));
     pipeline.addLast("proto-message-encoder", new ProtoMessageEncoder());
-    pipeline.addLast("proto-message-decoder", new ProtoMessageDecoder());
+    pipeline.addLast("proto-message-decoder", new ProtoMessageDecoder());*/
+    pipeline.addLast("object-encoder", new ObjectEncoder());
+    pipeline.addLast("object-decoder",
+        new ObjectDecoder(Integer.MAX_VALUE, ClassResolvers.cacheDisabled(TunnelServer.class.getClassLoader())));
     pipeline.addLast("tunnel-server-handler", new TunnelServerHandler(handlers));
   }
 

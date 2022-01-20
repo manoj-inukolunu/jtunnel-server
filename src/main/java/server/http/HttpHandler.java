@@ -3,6 +3,7 @@ package server.http;
 import static com.jtunnel.server.AppData.channelMap;
 
 
+import com.jtunnel.proto.MessageType;
 import com.jtunnel.server.AppData;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
@@ -19,8 +20,7 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
-import server.MessageTypeEnum;
-import proto.ProtoMessage;
+import com.jtunnel.proto.ProtoMessage;
 
 
 @Slf4j
@@ -49,7 +49,7 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
         byteBuf.readBytes(data);
         ProtoMessage message = new ProtoMessage();
         message.setSessionId(messageId);
-        message.setMessageType(MessageTypeEnum.HTTP_RESPONSE);
+        message.setMessageType(MessageType.HTTP_RESPONSE);
         message.setBody(new String(data));
         pipeline.writeAndFlush(message);
       }
@@ -66,7 +66,7 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest fullHttpRequest) throws Exception {
     FullHttpRequest request = fullHttpRequest.retain();
     try {
-      String subdomain = request.headers().get("host");
+      String subdomain = "localhost:8080";//request.headers().get("host");
       String sessionId = UUID.randomUUID().toString();
       AppData.httpChannelMap.put(sessionId, ctx);
       ChannelPipeline clientPipeline = channelMap.get(subdomain);

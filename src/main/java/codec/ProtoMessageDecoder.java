@@ -1,3 +1,4 @@
+/*
 package codec;
 
 import io.netty.buffer.ByteBuf;
@@ -7,17 +8,18 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.UUID;
 import server.MessageTypeEnum;
-import proto.ProtoMessage;
+import com.jtunnel.proto.ProtoMessage;
 
 public class ProtoMessageDecoder extends ByteToMessageDecoder {
 
   @Override
   protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> out) throws Exception {
+    ByteBuf copied = byteBuf.copy();
+    int len = copied.readableBytes();
+    byte[] data = new byte[len];
+    copied.readBytes(data);
+    System.out.println(new String(data));
     ProtoMessage message = new ProtoMessage();
-    /*message.setMagicNumber(byteBuf.readInt());  //  Read magic number
-    message.setMainVersion(byteBuf.readByte()); //  Read the main version number
-    message.setSubVersion(byteBuf.readByte()); //  Read the minor version number
-    message.setModifyVersion(byteBuf.readByte());//  Read the revision number*/
     CharSequence sessionId =
         byteBuf.readCharSequence(UUID.randomUUID().toString().length(), Charset.defaultCharset());//  Read sessionId
     message.setSessionId((String) sessionId);
@@ -44,3 +46,4 @@ public class ProtoMessageDecoder extends ByteToMessageDecoder {
 
 
 
+*/

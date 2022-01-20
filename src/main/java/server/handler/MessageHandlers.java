@@ -1,19 +1,19 @@
 package server.handler;
 
+import com.jtunnel.proto.MessageType;
 import io.netty.channel.ChannelHandlerContext;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
-import server.MessageTypeEnum;
-import proto.ProtoMessage;
+import com.jtunnel.proto.ProtoMessage;
 
 @Slf4j
 public class MessageHandlers implements MessageHandler {
 
 
-  Map<MessageTypeEnum, MessageHandler> handlers = new ConcurrentHashMap<>();
+  Map<MessageType, MessageHandler> handlers = new ConcurrentHashMap<>();
 
-  public void register(MessageTypeEnum type, MessageHandler handler) {
+  public void register(MessageType type, MessageHandler handler) {
     handlers.put(type, handler);
   }
 

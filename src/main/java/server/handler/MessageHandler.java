@@ -1,7 +1,7 @@
 package server.handler;
 
 import io.netty.channel.ChannelHandlerContext;
-import proto.ProtoMessage;
+import com.jtunnel.proto.ProtoMessage;
 
 public interface MessageHandler {
 

@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.NoArgsConstructor;
-import proto.ProtoMessage;
+import com.jtunnel.proto.ProtoMessage;
 
 @NoArgsConstructor
 public class ResponseMessageHandler implements MessageHandler {
