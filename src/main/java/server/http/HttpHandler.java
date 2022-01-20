@@ -66,7 +66,7 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest fullHttpRequest) throws Exception {
     FullHttpRequest request = fullHttpRequest.retain();
     try {
-      String subdomain = "localhost:8080";//request.headers().get("host");
+      String subdomain = request.headers().get("host");
       String sessionId = UUID.randomUUID().toString();
       AppData.httpChannelMap.put(sessionId, ctx);
       ChannelPipeline clientPipeline = channelMap.get(subdomain);
