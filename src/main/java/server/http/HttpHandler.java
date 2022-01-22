@@ -31,11 +31,13 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private final ChannelPipeline pipeline;
     private final String token;
     private final String messageId;
+    private final String subdomain;
 
-    public HttpMessageHandler(ChannelPipeline channel, String token, String messageId) {
+    public HttpMessageHandler(ChannelPipeline channel, String token, String messageId, String subdomain) {
       this.pipeline = channel;
       this.token = token;
       this.messageId = messageId;
+      this.subdomain = subdomain;
     }
 
     @Override
@@ -49,6 +51,7 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
         byteBuf.readBytes(data);
         ProtoMessage message = new ProtoMessage();
         message.setSessionId(messageId);
+        message.setSubDomain(subdomain);
         message.setMessageType(MessageType.HTTP_RESPONSE);
         message.setBody(new String(data));
         pipeline.writeAndFlush(message);
@@ -73,7 +76,7 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
       if (clientPipeline != null) {
         EmbeddedChannel embeddedChannel =
             new EmbeddedChannel(
-                new HttpMessageHandler(clientPipeline, AppData.hostToUUIDMap.get(subdomain), sessionId),
+                new HttpMessageHandler(clientPipeline, AppData.hostToUUIDMap.get(subdomain), sessionId, subdomain),
                 new HttpObjectAggregator(Integer.MAX_VALUE), new HttpRequestEncoder());
         ChannelFuture future = embeddedChannel.writeAndFlush(request);
         future.addListener(new GenericFutureListener<Future<? super Void>>() {
@@ -82,7 +85,7 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
             log.info("Converted FullHttpRequest to ProtoMessage with sessionId={}" + sessionId);
           }
         });
-        embeddedChannel.writeAndFlush(ProtoMessage.finMessage(sessionId));
+        embeddedChannel.writeAndFlush(ProtoMessage.finMessage(sessionId, subdomain));
       } else {
         log.warn("No Client registered for host={}", subdomain);
       }

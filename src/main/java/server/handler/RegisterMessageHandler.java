@@ -13,8 +13,6 @@ import com.jtunnel.proto.ProtoMessage;
 @Slf4j
 public class RegisterMessageHandler implements MessageHandler {
 
-  private MessageHandlers handlers;
-
   public RegisterMessageHandler(MessageHandlers handlers) {
     handlers.register(MessageType.REGISTER, this);
   }
@@ -22,9 +20,9 @@ public class RegisterMessageHandler implements MessageHandler {
   @Override
   public void handleMessage(ChannelHandlerContext ctx, ProtoMessage message) {
     try {
-      log.info("Register Message Received for subdomain={} sessionId={}", message.getAttachments().get("subdomain"),
+      log.info("Register Message Received for subdomain={} sessionId={}", message.getSubDomain(),
           message.getSessionId());
-      AppData.channelMap.put(message.getAttachments().get("subdomain"), ctx.pipeline());
+      AppData.channelMap.put(message.getSubDomain(), ctx.pipeline());
       message.setBody("Successfully Registered");
       ctx.writeAndFlush(message);
     } catch (Exception e) {
