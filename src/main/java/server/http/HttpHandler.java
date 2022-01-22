@@ -32,12 +32,15 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private final String token;
     private final String messageId;
     private final String subdomain;
+    private final String uri;
 
-    public HttpMessageHandler(ChannelPipeline channel, String token, String messageId, String subdomain) {
+    public HttpMessageHandler(ChannelPipeline channel, String token, String messageId, String subdomain,
+        String uri) {
       this.pipeline = channel;
       this.token = token;
       this.messageId = messageId;
       this.subdomain = subdomain;
+      this.uri = uri;
     }
 
     @Override
@@ -54,6 +57,7 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
         message.setSubDomain(subdomain);
         message.setMessageType(MessageType.HTTP_RESPONSE);
         message.setBody(new String(data));
+        message.setUri(uri);
         pipeline.writeAndFlush(message);
       }
     }
@@ -69,14 +73,17 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest fullHttpRequest) throws Exception {
     FullHttpRequest request = fullHttpRequest.retain();
     try {
-      String subdomain = request.headers().get("host");
       String sessionId = UUID.randomUUID().toString();
+      log.info("Received With sessionId={} and uri={}", sessionId, request.uri());
+      String subdomain = request.headers().get("host");
+//      log.info("Received Request from {} with sessionId={}", subdomain, sessionId);
       AppData.httpChannelMap.put(sessionId, ctx);
       ChannelPipeline clientPipeline = channelMap.get(subdomain);
       if (clientPipeline != null) {
         EmbeddedChannel embeddedChannel =
             new EmbeddedChannel(
-                new HttpMessageHandler(clientPipeline, AppData.hostToUUIDMap.get(subdomain), sessionId, subdomain),
+                new HttpMessageHandler(clientPipeline, AppData.hostToUUIDMap.get(subdomain), sessionId, subdomain,
+                    request.uri()),
                 new HttpObjectAggregator(Integer.MAX_VALUE), new HttpRequestEncoder());
         ChannelFuture future = embeddedChannel.writeAndFlush(request);
         future.addListener(new GenericFutureListener<Future<? super Void>>() {
@@ -85,7 +92,8 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
             log.info("Converted FullHttpRequest to ProtoMessage with sessionId={}" + sessionId);
           }
         });
-        embeddedChannel.writeAndFlush(ProtoMessage.finMessage(sessionId, subdomain));
+        log.info("Writing Fin Message for Subdomain={}", subdomain);
+        embeddedChannel.writeAndFlush(ProtoMessage.finMessage(sessionId, subdomain, request.uri()));
       } else {
         log.warn("No Client registered for host={}", subdomain);
       }
@@ -93,6 +101,10 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  public static void main(String[] args) {
+    System.out.println("manojteams.jtunnel.net".substring(0, "manojteams.jtunnel.net".indexOf(".")));
   }
 }
 

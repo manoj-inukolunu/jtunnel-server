@@ -58,6 +58,7 @@ public class ResponseMessageHandler implements MessageHandler {
             new EmbeddedChannel(new HttpResponseDecoder(), new HttpObjectAggregator(Integer.MAX_VALUE),
                 new HttpResponseTransformer(httpServerChannelCtx));
         embeddedChannel.writeInbound(data);
+        map.remove(message.getSessionId());
       } else {
         List<ProtoMessage> messages = map.getOrDefault(message.getSessionId(), new ArrayList<>());
         messages.add(message);
