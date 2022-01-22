@@ -16,6 +16,11 @@ import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
+import java.security.cert.CertificateException;
+import javax.net.ssl.SSLException;
 import server.handler.AckMessageHandler;
 import server.handler.MessageHandlers;
 import server.handler.RegisterMessageHandler;
@@ -42,7 +47,7 @@ public class TunnelServer {
               handlers.register(MessageType.REGISTER, new RegisterMessageHandler());
               handlers.register(MessageType.HTTP_RESPONSE, new ResponseMessageHandler());
               handlers.register(MessageType.ACK, new AckMessageHandler());
-              addProtoClientHandlers(pipeline, handlers);
+              addProtoClientHandlers(pipeline, ch, handlers);
             }
           });
 
@@ -58,11 +63,16 @@ public class TunnelServer {
     }
   }
 
-  public static void addProtoClientHandlers(ChannelPipeline pipeline, MessageHandlers handlers) {
+  public static void addProtoClientHandlers(ChannelPipeline pipeline, SocketChannel ch,
+      MessageHandlers handlers)
+      throws CertificateException, SSLException {
     /*pipeline.addLast("length-decoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 8, 0, 8));
     pipeline.addLast("length-prepender", new LengthFieldPrepender(8));
     pipeline.addLast("proto-message-encoder", new ProtoMessageEncoder());
     pipeline.addLast("proto-message-decoder", new ProtoMessageDecoder());*/
+    SelfSignedCertificate ssc = new SelfSignedCertificate();
+    SslContext sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
+    pipeline.addLast(sslCtx.newHandler(ch.alloc()));
     pipeline.addLast("object-encoder", new ObjectEncoder());
     pipeline.addLast("object-decoder",
         new ObjectDecoder(Integer.MAX_VALUE, ClassResolvers.cacheDisabled(TunnelServer.class.getClassLoader())));
