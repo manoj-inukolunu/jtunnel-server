@@ -9,6 +9,6 @@ public class PingMessageHandler implements MessageHandler {
 
   @Override
   public void handleMessage(ChannelHandlerContext ctx, ProtoMessage message) {
-    log.info("ping received");
+    log.debug("ping received");
   }
 }
