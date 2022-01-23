@@ -23,6 +23,7 @@ import java.security.cert.CertificateException;
 import javax.net.ssl.SSLException;
 import server.handler.AckMessageHandler;
 import server.handler.MessageHandlers;
+import server.handler.PingMessageHandler;
 import server.handler.RegisterMessageHandler;
 import server.handler.ResponseMessageHandler;
 import server.handler.TunnelServerHandler;
@@ -47,6 +48,7 @@ public class TunnelServer {
               handlers.register(MessageType.REGISTER, new RegisterMessageHandler());
               handlers.register(MessageType.HTTP_RESPONSE, new ResponseMessageHandler());
               handlers.register(MessageType.ACK, new AckMessageHandler());
+              handlers.register(MessageType.PING, new PingMessageHandler());
               addProtoClientHandlers(pipeline, ch, handlers);
             }
           });
