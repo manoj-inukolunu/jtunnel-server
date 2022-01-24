@@ -76,6 +76,7 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
       String sessionId = UUID.randomUUID().toString();
       log.info("Received With sessionId={} and uri={}", sessionId, request.uri());
       String subdomain = request.headers().get("host");
+      subdomain = subdomain.substring(0,subdomain.indexOf("."));
 //      log.info("Received Request from {} with sessionId={}", subdomain, sessionId);
       AppData.httpChannelMap.put(sessionId, ctx);
       ChannelPipeline clientPipeline = channelMap.get(subdomain);
