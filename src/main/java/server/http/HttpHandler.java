@@ -57,7 +57,6 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
         message.setSubDomain(subdomain);
         message.setMessageType(MessageType.HTTP_RESPONSE);
         message.setBody(new String(data));
-        message.setUri(uri);
         pipeline.writeAndFlush(message);
       }
     }
@@ -93,7 +92,7 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
           }
         });
         log.info("Writing Fin Message for Subdomain={}", subdomain);
-        embeddedChannel.writeAndFlush(ProtoMessage.finMessage(sessionId, subdomain, request.uri()));
+        embeddedChannel.writeAndFlush(ProtoMessage.finMessage(sessionId, subdomain));
       } else {
         log.warn("No Client registered for host={}", subdomain);
       }
