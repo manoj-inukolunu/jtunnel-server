@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import lombok.extern.log4j.Log4j2;
@@ -40,7 +41,21 @@ public class TunnelServer {
     public static void main(String[] args) {
 
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-        scheduler.schedule(TunnelServer::cronitorHeartBeat, 1, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    CronitorClient cronitorClient = new CronitorClient("d2c7f7b9bd0b4c3b95aa666ce629aba3");
+                    try {
+                        cronitorClient.tick("JTunnel", "Jtunnel server alive");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 0, 1, TimeUnit.MINUTES);
 
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -71,19 +86,6 @@ public class TunnelServer {
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
-        }
-    }
-
-    private static void cronitorHeartBeat() {
-        try {
-            CronitorClient cronitorClient = new CronitorClient("d2c7f7b9bd0b4c3b95aa666ce629aba3");
-            try {
-                cronitorClient.tick("JTunnel", "Jtunnel server alive");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
