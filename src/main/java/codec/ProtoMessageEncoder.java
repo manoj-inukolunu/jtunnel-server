@@ -1,3 +1,4 @@
+/*
 package codec;
 
 
@@ -9,21 +10,14 @@ import io.netty.handler.codec.MessageToByteEncoder;
 import java.nio.charset.Charset;
 import java.util.UUID;
 import server.MessageTypeEnum;
-import proto.ProtoMessage;
+import com.jtunnel.proto.ProtoMessage;
 
 public class ProtoMessageEncoder extends MessageToByteEncoder<ProtoMessage> {
 
   @Override
   protected void encode(ChannelHandlerContext ctx, ProtoMessage message, ByteBuf out) {
-    //  This will determine whether the message type is EMPTY type , If it is EMPTY type , Indicates that the
-    //  current message does not need to be written to the pipeline
     if (message.getMessageType() != MessageTypeEnum.EMPTY) {
-    /*  out.writeInt(1);//  Write the current magic number
-      out.writeByte(1);//  Write the current major version number
-      out.writeByte(1);//  Write the current minor version number
-      out.writeByte(1);//  Write the current revision number*/
       if (Strings.isNullOrEmpty(message.getSessionId())) {
-        //  Generate a sessionId, And write it to the byte sequence
         String sessionId = UUID.randomUUID().toString();
         message.setSessionId(sessionId);
         out.writeCharSequence(sessionId, Charset.defaultCharset());
@@ -31,20 +25,18 @@ public class ProtoMessageEncoder extends MessageToByteEncoder<ProtoMessage> {
         out.writeCharSequence(message.getSessionId(), Charset.defaultCharset());
       }
 
-      out.writeByte(message.getMessageType().getType());//  Write the type of the current message
-      out.writeShort(message.getAttachments().size());//  Number of additional parameters written to the
-      // current message
+      out.writeByte(message.getMessageType().getType());
+      out.writeShort(message.getAttachments().size());
       message.getAttachments().forEach((key, value) -> {
         Charset charset = Charset.defaultCharset();
-        out.writeInt(key.length());//  The length of the write key
-        out.writeCharSequence(key, charset);//  Write key data
-        out.writeInt(value.length());//  The length of the hill value
-        out.writeCharSequence(value, charset);//  Write value data
+        out.writeInt(key.length());
+        out.writeCharSequence(key, charset);
+        out.writeInt(value.length());
+        out.writeCharSequence(value, charset);
       });
 
       if (null == message.getBody()) {
-        out.writeInt(0);//  If the message body is empty , Then write 0, Indicates that the message body
-        // length is 0
+        out.writeInt(0);
       } else {
         out.writeInt(message.getBody().length());
         out.writeCharSequence(message.getBody(), Charset.defaultCharset());
@@ -57,3 +49,4 @@ public class ProtoMessageEncoder extends MessageToByteEncoder<ProtoMessage> {
 
 
 
+*/

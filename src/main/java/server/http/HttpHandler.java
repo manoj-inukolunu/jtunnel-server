@@ -3,6 +3,7 @@ package server.http;
 import static com.jtunnel.server.AppData.channelMap;
 
 
+import com.jtunnel.proto.MessageType;
 import com.jtunnel.server.AppData;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
@@ -19,8 +20,7 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
-import server.MessageTypeEnum;
-import proto.ProtoMessage;
+import com.jtunnel.proto.ProtoMessage;
 
 
 @Slf4j
@@ -31,11 +31,16 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private final ChannelPipeline pipeline;
     private final String token;
     private final String messageId;
+    private final String subdomain;
+    private final String uri;
 
-    public HttpMessageHandler(ChannelPipeline channel, String token, String messageId) {
+    public HttpMessageHandler(ChannelPipeline channel, String token, String messageId, String subdomain,
+        String uri) {
       this.pipeline = channel;
       this.token = token;
       this.messageId = messageId;
+      this.subdomain = subdomain;
+      this.uri = uri;
     }
 
     @Override
@@ -49,7 +54,8 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
         byteBuf.readBytes(data);
         ProtoMessage message = new ProtoMessage();
         message.setSessionId(messageId);
-        message.setMessageType(MessageTypeEnum.HTTP_RESPONSE);
+        message.setSubDomain(subdomain);
+        message.setMessageType(MessageType.HTTP_RESPONSE);
         message.setBody(new String(data));
         pipeline.writeAndFlush(message);
       }
@@ -66,14 +72,18 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest fullHttpRequest) throws Exception {
     FullHttpRequest request = fullHttpRequest.retain();
     try {
-      String subdomain = request.headers().get("host");
       String sessionId = UUID.randomUUID().toString();
+      log.info("Received With sessionId={} and uri={}", sessionId, request.uri());
+      String subdomain = request.headers().get("host");
+      subdomain = subdomain.substring(0,subdomain.indexOf("."));
+//      log.info("Received Request from {} with sessionId={}", subdomain, sessionId);
       AppData.httpChannelMap.put(sessionId, ctx);
       ChannelPipeline clientPipeline = channelMap.get(subdomain);
       if (clientPipeline != null) {
         EmbeddedChannel embeddedChannel =
             new EmbeddedChannel(
-                new HttpMessageHandler(clientPipeline, AppData.hostToUUIDMap.get(subdomain), sessionId),
+                new HttpMessageHandler(clientPipeline, AppData.hostToUUIDMap.get(subdomain), sessionId, subdomain,
+                    request.uri()),
                 new HttpObjectAggregator(Integer.MAX_VALUE), new HttpRequestEncoder());
         ChannelFuture future = embeddedChannel.writeAndFlush(request);
         future.addListener(new GenericFutureListener<Future<? super Void>>() {
@@ -82,7 +92,8 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
             log.info("Converted FullHttpRequest to ProtoMessage with sessionId={}" + sessionId);
           }
         });
-        embeddedChannel.writeAndFlush(ProtoMessage.finMessage(sessionId));
+        log.info("Writing Fin Message for Subdomain={}", subdomain);
+        embeddedChannel.writeAndFlush(ProtoMessage.finMessage(sessionId, subdomain));
       } else {
         log.warn("No Client registered for host={}", subdomain);
       }
@@ -90,6 +101,10 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  public static void main(String[] args) {
+    System.out.println("manojteams.jtunnel.net".substring(0, "manojteams.jtunnel.net".indexOf(".")));
   }
 }
 
