@@ -2,6 +2,7 @@ package server;
 
 
 import com.jtunnel.proto.MessageType;
+import io.cronitor.client.CronitorClient;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -19,7 +20,12 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
+
+import java.io.IOException;
 import java.security.cert.CertificateException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLException;
 import server.handler.AckMessageHandler;
 import server.handler.MessageHandlers;
@@ -32,6 +38,23 @@ import server.http.HttpServer;
 public class TunnelServer {
 
   public static void main(String[] args) {
+    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    scheduler.scheduleAtFixedRate(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          CronitorClient cronitorClient = new CronitorClient("d2c7f7b9bd0b4c3b95aa666ce629aba3");
+          try {
+            cronitorClient.tick("JTunnel", "Jtunnel server alive");
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    }, 0, 1, TimeUnit.MINUTES);
+
     EventLoopGroup bossGroup = new NioEventLoopGroup();
     EventLoopGroup workerGroup = new NioEventLoopGroup();
     try {
